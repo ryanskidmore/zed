@@ -773,13 +773,17 @@ and then another
             } = params;
 
             let http_client = client.http_client();
-            let mut token = llm_token.acquire(&client).await?;
+            let mut token = if predict_edits_url.is_empty() {
+                llm_token.acquire(&client).await?
+            } else {
+                String::new()
+            };
             let mut did_retry = false;
 
             loop {
                 let request_builder = http_client::Request::builder().method(Method::POST);
                 let request_builder =
-                    if predict_edits_url != "" {
+                    if !predict_edits_url.is_empty() {
                         request_builder.uri(&predict_edits_url)
                     } else {
                         request_builder.uri(
